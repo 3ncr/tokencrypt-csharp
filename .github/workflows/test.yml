@@ -1,0 +1,51 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        dotnet: ["8.0.x", "9.0.x", "10.0.x"]
+    name: .NET ${{ matrix.dotnet }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install .NET ${{ matrix.dotnet }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet }}
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --configuration Release --no-build --verbosity normal
+
+  pack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    name: Pack
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Pack
+        run: dotnet pack src/ThreeNcr.TokenCrypt/ThreeNcr.TokenCrypt.csproj --configuration Release --output artifacts
+
+      - name: List artifacts
+        run: ls -la artifacts

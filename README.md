@@ -61,20 +61,6 @@ using ThreeNcr;
 using TokenCrypt tc = TokenCrypt.FromSha3("some-high-entropy-api-token");
 ```
 
-### Legacy: PBKDF2-SHA3
-
-The original `(secret, salt, iterations)` KDF is kept for backward compatibility
-with data encrypted by earlier 3ncr.org libraries. It is **deprecated** — prefer
-`FromArgon2id`, `FromRawKey`, or `FromSha3` for new code.
-
-```csharp
-using ThreeNcr;
-
-#pragma warning disable CS0618
-using TokenCrypt tc = TokenCrypt.FromPbkdf2Sha3("my-secret", "my-salt", 1000);
-#pragma warning restore CS0618
-```
-
 ### Encrypt / decrypt
 
 ```csharp
@@ -97,15 +83,17 @@ Decryption failures (bad tag, truncated input, malformed base64) throw
 
 ## Cross-implementation interop
 
-This implementation decrypts the canonical v1 test vectors shared with the
-[Go](https://github.com/3ncr/tokencrypt),
+This implementation decrypts the canonical v1 envelope test vectors shared with
+the [Go](https://github.com/3ncr/tokencrypt),
 [Node.js](https://github.com/3ncr/nodencrypt),
 [PHP](https://github.com/3ncr/tokencrypt-php),
 [Python](https://github.com/3ncr/tokencrypt-python),
 [Rust](https://github.com/3ncr/tokencrypt-rust), and
-[Java](https://github.com/3ncr/tokencrypt-java) reference libraries
-(`secret = "a"`, `salt = "b"`, `iterations = 1000`). See
-`tests/ThreeNcr.TokenCrypt.Tests/TokenCryptTests.cs`.
+[Java](https://github.com/3ncr/tokencrypt-java) reference libraries. The 32-byte
+AES key those vectors were originally derived from (PBKDF2-SHA3-256 of
+`secret = "a"`, `salt = "b"`, `iterations = 1000`) is hardcoded in the test
+suite for envelope-level interop — this library only exposes the modern KDFs.
+See `tests/ThreeNcr.TokenCrypt.Tests/TokenCryptTests.cs`.
 
 ## License
 

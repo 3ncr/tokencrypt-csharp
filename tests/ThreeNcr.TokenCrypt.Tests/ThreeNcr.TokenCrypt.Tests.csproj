@@ -6,7 +6,7 @@
     <LangVersion>latest</LangVersion>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <NoWarn>$(NoWarn);CS0618;xUnit1026</NoWarn>
+    <NoWarn>$(NoWarn);xUnit1026</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

@@ -5,8 +5,6 @@ using System.Text;
 using Konscious.Security.Cryptography;
 
 using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Crypto.Generators;
-using Org.BouncyCastle.Crypto.Parameters;
 
 namespace ThreeNcr;
 
@@ -169,63 +167,6 @@ public sealed class TokenCrypt : IDisposable
             throw new ArgumentNullException(nameof(secret));
         }
         return FromArgon2id(Encoding.UTF8.GetBytes(secret), salt);
-    }
-
-    /// <summary>
-    /// Derive the AES key via PBKDF2-HMAC-SHA3-256 (legacy KDF).
-    /// </summary>
-    /// <remarks>
-    /// <para>Kept for backward compatibility with data encrypted by earlier
-    /// 3ncr.org libraries. New callers should use
-    /// <see cref="FromArgon2id(byte[], byte[])"/> for passwords or
-    /// <see cref="FromRawKey(byte[])"/> / <see cref="FromSha3(byte[])"/>
-    /// for high-entropy secrets. See
-    /// <see href="https://3ncr.org/1/#kdf">the v1 spec</see>.</para>
-    /// </remarks>
-    [Obsolete("legacy KDF; use FromArgon2id for passwords or FromRawKey / FromSha3 for high-entropy secrets")]
-    public static TokenCrypt FromPbkdf2Sha3(byte[] secret, byte[] salt, int iterations)
-    {
-        if (secret is null)
-        {
-            throw new ArgumentNullException(nameof(secret));
-        }
-        if (salt is null)
-        {
-            throw new ArgumentNullException(nameof(salt));
-        }
-        if (iterations < 1)
-        {
-            throw new ArgumentOutOfRangeException(nameof(iterations), "iterations must be positive");
-        }
-        Pkcs5S2ParametersGenerator generator = new(new Sha3Digest(256));
-        generator.Init(secret, salt, iterations);
-        KeyParameter keyParam = (KeyParameter)generator.GenerateDerivedMacParameters(AesKeySize * 8);
-        byte[] key = keyParam.GetKey();
-        try
-        {
-            return new TokenCrypt(key);
-        }
-        finally
-        {
-            CryptographicOperations.ZeroMemory(key);
-        }
-    }
-
-    /// <summary>Convenience overload: UTF-8 encodes <paramref name="secret"/> and <paramref name="salt"/>.</summary>
-    [Obsolete("legacy KDF; use FromArgon2id for passwords or FromRawKey / FromSha3 for high-entropy secrets")]
-    public static TokenCrypt FromPbkdf2Sha3(string secret, string salt, int iterations)
-    {
-        if (secret is null)
-        {
-            throw new ArgumentNullException(nameof(secret));
-        }
-        if (salt is null)
-        {
-            throw new ArgumentNullException(nameof(salt));
-        }
-#pragma warning disable CS0618 // calling our own obsolete overload
-        return FromPbkdf2Sha3(Encoding.UTF8.GetBytes(secret), Encoding.UTF8.GetBytes(salt), iterations);
-#pragma warning restore CS0618
     }
 
     /// <summary>Encrypt a UTF-8 string and return a <c>3ncr.org/1#...</c> value.</summary>

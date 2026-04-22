@@ -9,9 +9,12 @@ namespace ThreeNcr.Tests;
 public class TokenCryptTests
 {
     /// <summary>
-    /// Canonical v1 test vectors shared across Go, Node, PHP, Python, Rust,
-    /// Java, and .NET implementations. Derived via PBKDF2-SHA3-256 with
-    /// secret="a", salt="b", iterations=1000.
+    /// Canonical v1 envelope test vectors — shared with Go, Node, PHP, Python,
+    /// Rust, Java, and other implementations. The 32-byte AES key was
+    /// originally derived via the legacy PBKDF2-SHA3-256 KDF with secret="a",
+    /// salt="b", iterations=1000; this library only supports the modern KDFs,
+    /// so the derived key is hardcoded here so we can still verify
+    /// envelope-level interop.
     /// </summary>
     public static TheoryData<string, string> CanonicalVectors() => new()
     {
@@ -27,7 +30,15 @@ public class TokenCryptTests
         },
     };
 
-    private static TokenCrypt Legacy() => TokenCrypt.FromPbkdf2Sha3("a", "b", 1000);
+    private static readonly byte[] CanonicalKey =
+    {
+        0x2f, 0x84, 0x15, 0x18, 0x69, 0xd7, 0xd2, 0x25,
+        0x5d, 0x62, 0xb3, 0x32, 0x0e, 0x97, 0x42, 0x9b,
+        0xde, 0x5a, 0xac, 0x04, 0xa0, 0x57, 0x3b, 0x24,
+        0x68, 0x52, 0x9a, 0x74, 0x17, 0x51, 0x5f, 0x87,
+    };
+
+    private static TokenCrypt Canonical() => TokenCrypt.FromRawKey(CanonicalKey);
 
     private static byte[] RandomKey()
     {
@@ -40,7 +51,7 @@ public class TokenCryptTests
     [MemberData(nameof(CanonicalVectors))]
     public void DecryptsCanonicalVector(string plaintext, string encrypted)
     {
-        using TokenCrypt tc = Legacy();
+        using TokenCrypt tc = Canonical();
         Assert.Equal(plaintext, tc.DecryptIf3ncr(encrypted));
     }
 
@@ -48,7 +59,7 @@ public class TokenCryptTests
     [MemberData(nameof(CanonicalVectors))]
     public void RoundTripsCanonicalPlaintext(string plaintext, string _ignoredEncrypted)
     {
-        using TokenCrypt tc = Legacy();
+        using TokenCrypt tc = Canonical();
         string enc = tc.Encrypt3ncr(plaintext);
         Assert.StartsWith(TokenCrypt.HeaderV1, enc);
         Assert.Equal(plaintext, tc.DecryptIf3ncr(enc));
@@ -124,7 +135,7 @@ public class TokenCryptTests
     [Fact]
     public void DecoderAcceptsPaddedInput()
     {
-        using TokenCrypt tc = Legacy();
+        using TokenCrypt tc = Canonical();
         const string plaintext = "a";
         const string encrypted = "3ncr.org/1#I09Dwt6q05ZrH8GQ0cp+g9Jm0hD0BmCwEdylCh8";
         string body = encrypted.Substring(TokenCrypt.HeaderV1.Length);

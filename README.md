@@ -2,6 +2,7 @@
 
 [![Test](https://github.com/3ncr/tokencrypt-csharp/actions/workflows/test.yml/badge.svg)](https://github.com/3ncr/tokencrypt-csharp/actions/workflows/test.yml)
 [![NuGet](https://img.shields.io/nuget/v/ThreeNcr.TokenCrypt.svg)](https://www.nuget.org/packages/ThreeNcr.TokenCrypt)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/3ncr/tokencrypt-csharp/badge)](https://scorecard.dev/viewer/?uri=github.com/3ncr/tokencrypt-csharp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 [3ncr.org](https://3ncr.org/) is a standard for string encryption / decryption
